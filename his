@@ -1,0 +1,74 @@
+loadstring(game:HttpGet("https://pastebin.com/raw/jEDjp9Cw"))()
+
+local folder = game:GetService("Workspace").Terrain["_Game"]:WaitForChild("Folder")
+local targetVelocity = Vector3.new(34, 54, 0)
+local active = false -- Initially set to false
+local visSpamFlag = false -- Flag to prevent spam
+local visScriptCalled = false -- Flag to ensure vis script called only once
+
+local function changeHue(part)
+    local hue = 0
+    while true do
+        if active and part.Velocity == targetVelocity then
+            colorAPI.color(part, Color3.fromHSV(hue, 1, 1))
+        end
+        hue = hue + 0.0055
+        if hue > 1 then
+            hue = 0
+        end
+        wait(0.045)
+    end
+end
+
+local function startHueScript(part)
+    active = true
+    coroutine.wrap(changeHue)(part)
+end
+
+local function callVisScript()
+    if visScriptCalled == false then
+        visScriptCalled = true
+        for i = 1, 1 do
+            game.Players:Chat("vis")
+        end
+        wait(1)
+        for i, v in pairs(folder:GetChildren()) do
+            if v:IsA("BasePart") and v.Velocity == targetVelocity then
+                startHueScript(v)
+            end
+        end
+    end
+end
+
+game.Players.LocalPlayer.Chatted:Connect(function(message)
+    if message:lower() == "clr" or message:lower() == ".novis" or message:lower() == ".noclr" then
+        active = false
+    elseif message:lower() == ".vclr" then
+        if active == false then
+            for i, v in pairs(folder:GetChildren()) do
+                if v:IsA("BasePart") and v.Velocity == targetVelocity then
+                    startHueScript(v)
+                end
+            end
+        end
+    elseif message:lower() == "-vis" and not visSpamFlag then
+        visSpamFlag = true
+        callVisScript()
+    end
+end)
+
+game:GetService("RunService").Stepped:Connect(function()
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        plr.Chatted:Connect(function(msg)
+            if msg == "clr" or msg == "clear" or msg == ":clr" or msg == ":clear" then
+                callVisScript()
+                wait(1)
+                for i, v in pairs(folder:GetChildren()) do
+                    if v:IsA("BasePart") and v.Velocity == targetVelocity then
+                        startHueScript(v)
+                    end
+                end
+            end
+        end)
+    end
+end)
